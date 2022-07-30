@@ -1,0 +1,7 @@
+mlflow
+tensorflow
+onnx==1.9.0
+onnxmltools==1.7.0
+onnxruntime==1.7.0    
+keras2onnx==1.7.0
+Pillow

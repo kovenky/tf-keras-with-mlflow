@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+mlflow/
+.vscode
+mlruns
+model.json
+model_summary*
