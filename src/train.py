@@ -7,8 +7,6 @@ import mlflow.tensorflow
 import click
 import utils
 
-utils.display_versions()
-
 np.random.seed(42)
 tf.random.set_seed(42)
 
@@ -72,14 +70,16 @@ def train(run, model_name, data_path, epochs, batch_size, mlflow_custom_log):
 @click.option("--epochs", help="Epochs", default=5, type=int)
 @click.option("--batch-size", help="Batch size", default=128, type=int)
 @click.option("--mlflow-custom-log", help="Explicitly log params, metrics and model with mlflow.log_", default=True, type=bool)
-@click.option("--keras-autolog", help="Automatically log params, metrics and model with mlflow.keras.autolog", default=False, type=bool)
+@click.option("--keras-autolog", help="Automatically log params, metrics and model with mlflow.keras.autolog", default=True, type=bool)
 @click.option("--tensorflow-autolog", help="Automatically log params, metrics and model with mlflow.tensorflow.autolog", default=False, type=bool)
-@click.option("--mlflow-autolog", help="Automatically log params, metrics and model with mlflow.autolog", default=False, type=bool)
+@click.option("--mlflow-autolog", help="Automatically log params, metrics and model with mlflow.autolog", default=True, type=bool)
 def main(experiment_name, model_name, data_path, epochs, batch_size, mlflow_autolog, keras_autolog, tensorflow_autolog, mlflow_custom_log):
     print("Options:")
     for k,v in locals().items():
         print(f"  {k}: {v}")
+
     model_name = None if not model_name or model_name == "None" else model_name
+    
     if not mlflow_autolog and not keras_autolog and not tensorflow_autolog:
         mlflow_custom_log = True
 
@@ -108,8 +108,13 @@ def main(experiment_name, model_name, data_path, epochs, batch_size, mlflow_auto
         mlflow.set_tag("keras_autolog", keras_autolog)
         mlflow.set_tag("mlflow_custom_log", mlflow_custom_log)
         train(run, model_name, data_path, epochs, batch_size, mlflow_custom_log)
+    
+    # fetch the auto logged parameters and metrics for ended run
+    utils.print_auto_logged_info(mlflow.get_run(run_id=run.info.run_id))
+
 
 if __name__ == "__main__":
     # run main/app
+    utils.display_versions()
     main()
     

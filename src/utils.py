@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import mlflow
 from tensorflow import keras
+from mlflow.tracking import MlflowClient
+
 
 def reshape(x, n):
     x = x.reshape((n, 28 * 28))
@@ -61,17 +63,6 @@ def register_model(run, model_name, client = mlflow.tracking.MlflowClient()):
     source = f"{run.info.artifact_uri}/model"
     client.create_model_version(model_name, source, run.info.run_id)
 
-def predict_pyfunc(model_uri, data):
-    print("\n**** mlflow.pyfunc.load_model\n")
-    model = mlflow.pyfunc.load_model(model_uri)
-    print("model.type:", type(model))
-    data = pd.DataFrame(data)
-    predictions = model.predict(data)
-    print("predictions.type:", type(predictions))
-    print("predictions.shape:", predictions.shape)
-    #print("predictions:", predictions)
-    display_predictions(predictions)
-
 def display_predictions(data):
     from tabulate import tabulate
     df = pd.DataFrame(data).head(10)
@@ -87,3 +78,12 @@ def display_versions():
     print("  Python Version:", platform.python_version())
     print("  Operating System:", platform.system()+" - "+platform.release())
     print("  Tracking URI:", mlflow.tracking.get_tracking_uri())
+
+def print_auto_logged_info(r):
+    tags = {k: v for k, v in r.data.tags.items() if not k.startswith("mlflow.")}
+    artifacts = [f.path for f in MlflowClient().list_artifacts(r.info.run_id, "model")]
+    print("run_id: {}".format(r.info.run_id))
+    print("artifacts: {}".format(artifacts))
+    print("params: {}".format(r.data.params))
+    print("metrics: {}".format(r.data.metrics))
+    print("tags: {}".format(tags))
